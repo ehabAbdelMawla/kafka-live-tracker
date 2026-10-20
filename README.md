@@ -11,26 +11,27 @@ Build decisions are recorded in [`DECISIONS.md`](./DECISIONS.md), Kafka observat
 
 ```mermaid
 flowchart LR
-    subgraph Tracker[Tracker browser]
-        A[geolocation + Wake Lock + QR share link]
-    end
-    subgraph Backend[NestJS backend]
-        B[REST API]
-        P[Kafka producer]
-        C1[consumer group location-broadcaster]
-        C2[consumer group location-archiver]
-        G[Socket.IO /live]
-    end
-    K[(Kafka<br/>location.updates · session.events)]
-    subgraph Viewer[Viewer browser]
-        V[Leaflet map<br/>dark tiles]
-    end
+    T["📱 Tracker<br/>phone / laptop GPS"]
+    A["🚀 NestJS API<br/>REST + Socket.IO"]
+    K[("🔴 Apache Kafka<br/>location.updates · session.events")]
+    B["📍 Broadcaster consumer"]
+    WS["Socket.IO /live"]
+    V["🗺️ Viewer map"]
+    R["💾 Archiver consumer"]
+    S[("history.jsonl")]
 
-    A -- POST location --> B --> P -- location.updates, key = sessionId --> K
-    A -- start/stop click --> B -- STOPPED --> P
-    K -- ordered fixes --> C1 --> G -- WebSocket --> V
-    K -- 'session.events (STARTED/STOPPED)' --> C1
-    K --> C2 --> F[(data/history.jsonl)]
+    T -- "POST fix (key = sessionId)" --> A
+    A -- produce --> K
+    K -- consume --> B --> WS -- "live fixes" --> V
+    K -- consume --> R --> S
+    V -. "join room share:shareId" .-> WS
+
+    classDef browser fill:#1e40af,color:#fff,stroke:#60a5fa;
+    classDef backend fill:#134e4a,color:#fff,stroke:#2dd4bf;
+    classDef kafka fill:#7c2d12,color:#fff,stroke:#fb923c;
+    class T,V browser;
+    class A,B,R,WS backend;
+    class K,S kafka;
 ```
 
 - `POST /api/sessions` creates a session, returns a **share link** and a secret
