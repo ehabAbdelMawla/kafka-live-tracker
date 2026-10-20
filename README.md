@@ -12,7 +12,7 @@ Build decisions are recorded in [`DECISIONS.md`](./DECISIONS.md), Kafka observat
 ```mermaid
 flowchart LR
     subgraph Tracker[Tracker browser]
-        A[Start/Stop + navigator.geolocation]
+        A[geolocation + Wake Lock + QR share link]
     end
     subgraph Backend[NestJS backend]
         B[REST API]
@@ -23,11 +23,13 @@ flowchart LR
     end
     K[(Kafka<br/>location.updates · session.events)]
     subgraph Viewer[Viewer browser]
-        V[Leaflet map]
+        V[Leaflet map<br/>dark tiles]
     end
 
-    A -- POST location --> B --> P --> K
-    K --> C1 --> G -- WebSocket --> V
+    A -- POST location --> B --> P -- location.updates, key = sessionId --> K
+    A -- start/stop click --> B -- STOPPED --> P
+    K -- ordered fixes --> C1 --> G -- WebSocket --> V
+    K -- 'session.events (STARTED/STOPPED)' --> C1
     K --> C2 --> F[(data/history.jsonl)]
 ```
 
@@ -40,6 +42,9 @@ flowchart LR
   - `location-archiver` appends the raw events to `backend/data/history.jsonl`
 - `POST /api/sessions/:id/stop` publishes a `STOPPED` event on `session.events`;
   viewers immediately see "Tracking ended".
+- While tracking, the phone screen stays **awake** (Screen Wake Lock, re-acquired
+  when the tab becomes visible again), and the share panel renders a **QR code**
+  of the link produced from `PUBLIC_APP_URL`.
 
 ## Run it
 
