@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+
+# environment
+.env
+.env.local
+backend/.env
+frontend/.env*
+
+# kafka archive data (history.jsonl lives here)
+data/
+
+# logs
+*.log
+
+# OS
+.DS_Store
