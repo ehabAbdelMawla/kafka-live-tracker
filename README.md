@@ -9,6 +9,14 @@ Build decisions are recorded in [`DECISIONS.md`](./DECISIONS.md), Kafka observat
 
 ## Architecture
 
+<p align="center">
+  <img src="docs/architecture.png" width="700"
+       alt="Live tracker architecture: Tracker GPS → NestJS API → Apache Kafka (location.updates keyed by sessionId, session.events) → Broadcaster consumer → Socket.IO → Viewer map, and Archiver consumer → history.jsonl" />
+</p>
+
+<details>
+<summary>Interactive diagram (mermaid)</summary>
+
 ```mermaid
 flowchart LR
     T["📱 Tracker<br/>phone / laptop GPS"]
@@ -33,6 +41,8 @@ flowchart LR
     class A,B,R,WS backend;
     class K,S kafka;
 ```
+
+</details>
 
 - `POST /api/sessions` creates a session, returns a **share link** and a secret
   `trackerToken` (the tracker's proof of ownership; viewers never see it).
